@@ -1,8 +1,11 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
   <title>Presentation Coach</title>
+
+  <script type="module" src="main.js"></script>
+
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
@@ -21,169 +24,6 @@
     <video class="input_video" playsinline></video>
     <canvas class="output_canvas" width="1280" height="720"></canvas>
   </div>
-
-  <script type="module">
-    const videoElement  = document.getElementsByClassName('input_video')[0];
-    const canvasElement = document.getElementsByClassName('output_canvas')[0];
-    const canvasCtx     = canvasElement.getContext('2d');
-
-    // Timer variables for detecting hands under hips
-    let bothHandsUnderStartTime = null;
-    let popUpShown = false;
-
-    function onResults(results) {
-      canvasCtx.save();
-      canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-
-      // Draw segmentation mask + video
-      canvasCtx.drawImage(results.segmentationMask, 0, 0,
-                          canvasElement.width, canvasElement.height);
-      canvasCtx.globalCompositeOperation = 'source-in';
-      canvasCtx.fillStyle = '#00FF00';
-      canvasCtx.fillRect(0, 0, canvasElement.width, canvasElement.height);
-      canvasCtx.globalCompositeOperation = 'destination-atop';
-      canvasCtx.drawImage(results.image, 0, 0,
-                          canvasElement.width, canvasElement.height);
-      canvasCtx.globalCompositeOperation = 'source-over';
-
-      // Draw pose, face, and hands
-      drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS, { color: '#00FF00', lineWidth: 4 });
-      drawLandmarks(canvasCtx, results.poseLandmarks, { color: '#FF0000', lineWidth: 2 });
-      drawConnectors(canvasCtx, results.faceLandmarks, FACEMESH_TESSELATION, { color: '#C0C0C070', lineWidth: 1 });
-      drawConnectors(canvasCtx, results.leftHandLandmarks, HAND_CONNECTIONS, { color: '#CC0000', lineWidth: 5 });
-      drawLandmarks(canvasCtx, results.leftHandLandmarks, { color: '#00FF00', lineWidth: 2 });
-      drawConnectors(canvasCtx, results.rightHandLandmarks, HAND_CONNECTIONS, { color: '#00CC00', lineWidth: 5 });
-      drawLandmarks(canvasCtx, results.rightHandLandmarks, { color: '#FF0000', lineWidth: 2 });
-
-      // Prepare shoulder data
-      let lsPx = { x: 0, y: 0 }, rsPx = { x: 0, y: 0 };
-      let lSZ = 0, rSZ = 0;
-      if (results.poseLandmarks) {
-        const lS = results.poseLandmarks[11];  // left shoulder
-        const rS = results.poseLandmarks[12];  // right shoulder
-
-        // Pixel coordinates
-        lsPx = { x: lS.x * canvasElement.width,  y: lS.y * canvasElement.height };
-        rsPx = { x: rS.x * canvasElement.width,  y: rS.y * canvasElement.height };
-
-        // Normalized depth (z)
-        lSZ = lS.z;
-        rSZ = rS.z;
-
-        // Draw circles at the shoulders
-        canvasCtx.beginPath();
-        canvasCtx.arc(lsPx.x, lsPx.y, 8, 0, 2 * Math.PI);
-        canvasCtx.fillStyle = 'blue';
-        canvasCtx.fill();
-        canvasCtx.beginPath();
-        canvasCtx.arc(rsPx.x, rsPx.y, 8, 0, 2 * Math.PI);
-        canvasCtx.fillStyle = 'red';
-        canvasCtx.fill();
-      }
-
-      // Draw coordinate text including z-values on the left side
-      canvasCtx.font = '18px sans-serif';
-      canvasCtx.fillStyle = 'white';
-      canvasCtx.fillText(
-        `Left Shoulder:  (${Math.round(lsPx.x)}, ${Math.round(lsPx.y)}, z:${lSZ.toFixed(3)})`,
-        10, 30
-      );
-      canvasCtx.fillText(
-        `Right Shoulder: (${Math.round(rsPx.x)}, ${Math.round(rsPx.y)}, z:${rSZ.toFixed(3)})`,
-        10, 60
-      );
-
-      // Compute hip threshold
-      let hipThreshold = null;
-      if (results.poseLandmarks) {
-        const lH = results.poseLandmarks[23];  // left hip
-        const rH = results.poseLandmarks[24];  // right hip
-        hipThreshold = ((lH.y + rH.y) / 2) * canvasElement.height;
-        // (Optional) Draw a line at hip level
-        canvasCtx.beginPath();
-        canvasCtx.moveTo(0, hipThreshold);
-        canvasCtx.lineTo(canvasElement.width, hipThreshold);
-        canvasCtx.strokeStyle = 'white';
-        canvasCtx.lineWidth = 1;
-        canvasCtx.stroke();
-      }
-
-      // Compute palm centers
-      let leftPalmCenter = null;
-      if (results.leftHandLandmarks) {
-        let sumX = 0, sumY = 0;
-        for (const lm of results.leftHandLandmarks) {
-          sumX += lm.x * canvasElement.width;
-          sumY += lm.y * canvasElement.height;
-        }
-        const cx = sumX / results.leftHandLandmarks.length;
-        const cy = sumY / results.leftHandLandmarks.length;
-        leftPalmCenter = { x: cx, y: cy };
-        canvasCtx.beginPath();
-        canvasCtx.arc(cx, cy, 8, 0, 2 * Math.PI);
-        canvasCtx.fillStyle = 'yellow';
-        canvasCtx.fill();
-      }
-
-      let rightPalmCenter = null;
-      if (results.rightHandLandmarks) {
-        let sumX = 0, sumY = 0;
-        for (const lm of results.rightHandLandmarks) {
-          sumX += lm.x * canvasElement.width;
-          sumY += lm.y * canvasElement.height;
-        }
-        const cx = sumX / results.rightHandLandmarks.length;
-        const cy = sumY / results.rightHandLandmarks.length;
-        rightPalmCenter = { x: cx, y: cy };
-        canvasCtx.beginPath();
-        canvasCtx.arc(cx, cy, 8, 0, 2 * Math.PI);
-        canvasCtx.fillStyle = 'cyan';
-        canvasCtx.fill();
-      }
-
-      // Detection logic: if both palm centers are under hips for 45s, show alert
-      if (leftPalmCenter && rightPalmCenter && hipThreshold !== null) {
-        if (leftPalmCenter.y > hipThreshold && rightPalmCenter.y > hipThreshold) {
-          if (bothHandsUnderStartTime === null) {
-            bothHandsUnderStartTime = Date.now();
-            popUpShown = false;
-          } else if (!popUpShown && Date.now() - bothHandsUnderStartTime >= 5000) {
-            alert('hands up');
-            popUpShown = true;
-          }
-        } else {
-          bothHandsUnderStartTime = null;
-          popUpShown = false;
-        }
-      } else {
-        bothHandsUnderStartTime = null;
-        popUpShown = false;
-      }
-
-      canvasCtx.restore();
-    }
-
-    const holistic = new Holistic({
-      locateFile: file => `https://cdn.jsdelivr.net/npm/@mediapipe/holistic/${file}`
-    });
-    holistic.setOptions({
-      modelComplexity:        1,
-      smoothLandmarks:        true,
-      enableSegmentation:     true,
-      smoothSegmentation:     true,
-      refineFaceLandmarks:    true,
-      minDetectionConfidence: 0.5,
-      minTrackingConfidence:  0.5
-    });
-    holistic.onResults(onResults);
-
-    const camera = new Camera(videoElement, {
-      onFrame: async () => { await holistic.send({ image: videoElement }); },
-      width: 1280,
-      height: 720
-    });
-    camera.start();
-  </script>
 </body>
 </html> 
 
@@ -192,4 +32,93 @@
 
 
 
+ -->
 
+
+ <!DOCTYPE html>
+ <html>
+ <head>
+   <meta charset="utf-8">
+   <title>Presentation Coach</title>
+ 
+   <script type="module" src="main.js"></script>
+ 
+   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/holistic/holistic.js" crossorigin="anonymous"></script>
+ 
+   <style>
+     body {
+       margin: 0;
+       overflow: hidden;
+       background: #222;
+       color: #fff;
+       /* font-family: sans-serif; */
+       font-family: "Comic Sans MS", "Comic Sans", cursive;
+     }
+ 
+     .container {
+       display: flex;
+       align-items: flex-start;
+       padding: 20px;
+     }
+ 
+     .video-wrapper {
+       position: relative;
+       width: 1280px;
+       height: 720px;
+     }
+ 
+     video {
+       visibility: hidden;
+       position: absolute;
+     }
+ 
+     canvas {
+       position: absolute;
+       top: 0;
+       left: 0;
+     }
+ 
+     #statusText {
+       margin-left: 30px;
+       font-size: 24px;
+       min-height: 40px;
+       opacity: 0;
+       transition: opacity 0.5s ease-in-out;
+       animation: bounceIn 0.5s;
+       max-width: 300px;
+     }
+ 
+     #statusText.show {
+       opacity: 1;
+     }
+ 
+     @keyframes bounceIn {
+       0% {
+         transform: scale(0.8);
+         opacity: 0.2;
+       }
+       60% {
+         transform: scale(1.05);
+         opacity: 1;
+       }
+       100% {
+         transform: scale(1);
+       }
+     }
+   </style>
+ </head>
+ 
+ <body>
+   <div class="container">
+     <div class="video-wrapper">
+       <video class="input_video" playsinline></video>
+       <canvas class="output_canvas" width="1280" height="720"></canvas>
+     </div>
+     <div id="statusText"></div>
+   </div>
+ </body>
+ </html>
+ 
