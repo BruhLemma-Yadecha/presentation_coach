@@ -18,19 +18,7 @@ function App() {
           <Coach />
           <button 
             onClick={() => setStart(false)} 
-            style={{
-              position: 'fixed',
-              bottom: '20px',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              zIndex: 200,
-              padding: '10px 20px',
-              background: 'rgba(0,0,0,0.5)',
-              color: 'white',
-              border: 'none',
-              borderRadius: '5px',
-              cursor: 'pointer'
-            }}
+            id="startButton"
           >
             Reset
           </button>
