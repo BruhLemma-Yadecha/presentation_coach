@@ -54,13 +54,13 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
-#resetButton{
+#resetButton {
   position: fixed;
   right: 20px;
   top: 20px;
   z-index: 200;
   padding: 10px 20px;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0, 0, 0, 0.5);
   color: white;
   border: none;
   border-radius: 5px;
@@ -69,15 +69,15 @@ button:focus-visible {
 
 #startButton {
   position: fixed;
-  left: '50%';
-  transform: 'translateX(-50%)';
+  left: "50%";
+  transform: "translateX(-50%)";
   z-index: 200;
-  padding: '10px 20px';
-  background: 'rgba(0,0,0,0.5)';
-  color: 'white';
-  border: 'none';
-  border-radius: '5px';
-  cursor: 'pointer';
+  padding: "10px 20px";
+  background: "rgba(0,0,0,0.5)";
+  color: "white";
+  border: "none";
+  border-radius: "5px";
+  cursor: "pointer";
 }
 
 @media (prefers-color-scheme: light) {
