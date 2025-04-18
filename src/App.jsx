@@ -8,23 +8,25 @@ function App() {
   return (
     <>
       {start ? (
-        <div style={{ 
-          position: 'fixed', 
-          top: 0,
-          width: '100%', 
-          height: '100vh',
-          zIndex: 100
-        }}>
-          <Coach />
+        <div>
+          <div style={{ 
+            position: 'fixed', 
+            top: 0,
+            width: '100%', 
+            height: '100vh',
+            zIndex: 100
+          }}>
+          <Coach/>
+          </div>
+        <div >
           <button 
-            onClick={() => setStart(false)} 
-            id="startButton"
-          >
+            onClick={() => setStart(false)}>
             Reset
           </button>
         </div>
+      </div>
       ) : (
-        <button onClick={() => setStart(true)}>Start Coach</button>
+        <button id="startButton" onClick={() => setStart(true)}>Start Coach</button>
       )}
     </>
   )
