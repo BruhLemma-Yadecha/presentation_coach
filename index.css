@@ -1,0 +1,66 @@
+.root{
+    --primary-color: #4CAF50; /* Green */
+    --secondary-color: #f44336; /* Red */
+    --background-color: #f0f0f0; /* Light Gray */
+    --text-color: #333; /* Dark Gray */
+}
+
+body {
+    margin: 0;
+    overflow: hidden;
+    background: #222;
+    color: #fff;
+    /* font-family: sans-serif; */
+    font-family: "Comic Sans MS", "Comic Sans", cursive;
+  }
+
+  .container {
+    display: flex;
+    align-items: flex-start;
+    padding: 20px;
+  }
+
+  .video-wrapper {
+    position: relative;
+    width: 1280px;
+    height: 720px;
+  }
+
+  video {
+    visibility: hidden;
+    position: absolute;
+  }
+
+  canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+
+  #statusText {
+    margin-left: 30px;
+    font-size: 24px;
+    min-height: 40px;
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+    animation: bounceIn 0.5s;
+    max-width: 300px;
+  }
+
+  #statusText.show {
+    opacity: 1;
+  }
+
+  @keyframes bounceIn {
+    0% {
+      transform: scale(0.8);
+      opacity: 0.2;
+    }
+    60% {
+      transform: scale(1.05);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
