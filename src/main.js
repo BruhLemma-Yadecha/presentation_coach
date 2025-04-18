@@ -83,7 +83,7 @@ function onResults(results) {
     if (results.poseLandmarks) {
         const lH = results.poseLandmarks[23];
         const rH = results.poseLandmarks[24];
-        hipThreshold = (((lH.y + rH.y) / 2) + 10) * canvasElement.height;
+        hipThreshold = ((lH.y + rH.y) / 2) * canvasElement.height;
 
         const leftEye = results.poseLandmarks[1];
         const rightEye = results.poseLandmarks[4];
