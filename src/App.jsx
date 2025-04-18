@@ -1,6 +1,7 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState } from 'react'
 import './App.css'
 import Coach from './Coach.jsx'
+import { Button } from "@/components/ui/button"
 
 function App() {
   const [start, setStart] = useState(false);
@@ -18,15 +19,15 @@ function App() {
           }}>
           <Coach/>
           </div>
-        <div >
-          <button 
-            onClick={() => setStart(false)}>
-            Reset
-          </button>
+          <div>
+            <Button 
+              onClick={() => setStart(false)}>
+              Reset
+            </Button>
+          </div>
         </div>
-      </div>
       ) : (
-        <button id="startButton" onClick={() => setStart(true)}>Start Coach</button>
+        <Button id="startButton" onClick={() => setStart(true)}>Start Coach</Button>
       )}
     </>
   )
