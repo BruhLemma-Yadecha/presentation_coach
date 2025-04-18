@@ -1,20 +1,24 @@
+// Get video and canvas DOM elements
 const videoElement = document.getElementsByClassName('input_video')[0];
 const canvasElement = document.getElementsByClassName('output_canvas')[0];
 const canvasCtx = canvasElement.getContext('2d');
 
+// Get the status text element for UI feedback
 const statusDiv = document.getElementById('statusText');
 let lastStatusMessage = "";
 let statusTimeout = null;
 
+// Set status message and animate it in the UI
 function setStatusMessage(message) {
     if (message !== lastStatusMessage) {
         lastStatusMessage = message;
         statusDiv.textContent = message;
         statusDiv.classList.add('show');
-        clearTimeout(statusTimeout);
+        clearTimeout(statusTimeout); // Clear existing timeout
     }
 }
 
+// Clear the status message with fade-out delay
 function clearStatusMessage() {
     if (lastStatusMessage !== "") {
         lastStatusMessage = "";
@@ -25,15 +29,19 @@ function clearStatusMessage() {
     }
 }
 
+// Timers and flags for hand gesture detection
 let bothHandsUnderStartTime = null;
 let popUpShown = false;
 
 let bothHandsAboveStartTime = null;
 let eyesPopUpShown = false;
 
+// Called each time MediaPipe returns results
 function onResults(results) {
     canvasCtx.save();
     canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+
+    // Draw the segmentation mask
     canvasCtx.drawImage(results.segmentationMask, 0, 0, canvasElement.width, canvasElement.height);
     canvasCtx.globalCompositeOperation = 'source-in';
     canvasCtx.fillStyle = '#6b6b6b';
@@ -42,6 +50,7 @@ function onResults(results) {
     canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
     canvasCtx.globalCompositeOperation = 'source-over';
 
+    // Draw landmarks for pose, face, and hands
     drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS, { color: '#00FF00', lineWidth: 4 });
     drawLandmarks(canvasCtx, results.poseLandmarks, { color: '#FF0000', lineWidth: 2 });
     drawConnectors(canvasCtx, results.faceLandmarks, FACEMESH_TESSELATION, { color: '#C0C0C070', lineWidth: 1 });
@@ -50,12 +59,13 @@ function onResults(results) {
     drawConnectors(canvasCtx, results.rightHandLandmarks, HAND_CONNECTIONS, { color: '#00CC00', lineWidth: 5 });
     drawLandmarks(canvasCtx, results.rightHandLandmarks, { color: '#FF0000', lineWidth: 2 });
 
+    // Extract shoulder positions and draw them
     let lsPx = { x: 0, y: 0 }, rsPx = { x: 0, y: 0 };
     let lSZ = 0, rSZ = 0;
 
     if (results.poseLandmarks) {
-        const lS = results.poseLandmarks[11];
-        const rS = results.poseLandmarks[12];
+        const lS = results.poseLandmarks[11]; // Left shoulder
+        const rS = results.poseLandmarks[12]; // Right shoulder
 
         lsPx = { x: lS.x * canvasElement.width, y: lS.y * canvasElement.height };
         rsPx = { x: rS.x * canvasElement.width, y: rS.y * canvasElement.height };
@@ -66,49 +76,50 @@ function onResults(results) {
         canvasCtx.arc(lsPx.x, lsPx.y, 8, 0, 2 * Math.PI);
         canvasCtx.fillStyle = 'blue';
         canvasCtx.fill();
+
         canvasCtx.beginPath();
         canvasCtx.arc(rsPx.x, rsPx.y, 8, 0, 2 * Math.PI);
         canvasCtx.fillStyle = 'red';
         canvasCtx.fill();
     }
 
+    // Display shoulder positions
     canvasCtx.font = '18px sans-serif';
     canvasCtx.fillStyle = 'white';
     canvasCtx.fillText(`Left Shoulder:  (${Math.round(lsPx.x)}, ${Math.round(lsPx.y)}, z:${lSZ.toFixed(3)})`, 10, 30);
     canvasCtx.fillText(`Right Shoulder: (${Math.round(rsPx.x)}, ${Math.round(rsPx.y)}, z:${rSZ.toFixed(3)})`, 10, 60);
 
-    let hipThreshold = null;
-    let eyeThreshold = null, bellyThreshold = null;
+    // Compute thresholds for gestures
+    let hipThresholdOffset = null;
+    let eyeThreshold = null;
 
     if (results.poseLandmarks) {
-        const lH = results.poseLandmarks[23];
-        const rH = results.poseLandmarks[24];
-        hipThreshold = ((lH.y + rH.y) / 2) * canvasElement.height;
+        const lH = results.poseLandmarks[23]; // Left hip
+        const rH = results.poseLandmarks[24]; // Right hip
+        const rawHipY = (lH.y + rH.y) / 2;     // Average hip height
+        hipThresholdOffset = (rawHipY - 0.05) * canvasElement.height; // Move 5% upward
 
         const leftEye = results.poseLandmarks[1];
         const rightEye = results.poseLandmarks[4];
         eyeThreshold = ((leftEye.y + rightEye.y) / 2) * canvasElement.height;
-        bellyThreshold = ((lH.y + rH.y) / 2) * canvasElement.height;
 
+        // Draw eye threshold line
         canvasCtx.beginPath();
         canvasCtx.moveTo(0, eyeThreshold);
         canvasCtx.lineTo(canvasElement.width, eyeThreshold);
         canvasCtx.strokeStyle = 'lightblue';
         canvasCtx.stroke();
 
+        // Draw offset hip line (orange)
         canvasCtx.beginPath();
-        canvasCtx.moveTo(0, bellyThreshold);
-        canvasCtx.lineTo(canvasElement.width, bellyThreshold);
-        canvasCtx.strokeStyle = 'lightgreen';
-        canvasCtx.stroke();
-
-        canvasCtx.beginPath();
-        canvasCtx.moveTo(0, hipThreshold);
-        canvasCtx.lineTo(canvasElement.width, hipThreshold);
-        canvasCtx.strokeStyle = 'white';
+        canvasCtx.moveTo(0, hipThresholdOffset);
+        canvasCtx.lineTo(canvasElement.width, hipThresholdOffset);
+        canvasCtx.strokeStyle = 'orange';
+        canvasCtx.lineWidth = 1;
         canvasCtx.stroke();
     }
 
+    // Compute palm center for left and right hands
     let leftPalmCenter = null, rightPalmCenter = null;
 
     if (results.leftHandLandmarks) {
@@ -117,11 +128,12 @@ function onResults(results) {
             sumX += lm.x * canvasElement.width;
             sumY += lm.y * canvasElement.height;
         }
-        const cx = sumX / results.leftHandLandmarks.length;
-        const cy = sumY / results.leftHandLandmarks.length;
-        leftPalmCenter = { x: cx, y: cy };
+        leftPalmCenter = {
+            x: sumX / results.leftHandLandmarks.length,
+            y: sumY / results.leftHandLandmarks.length
+        };
         canvasCtx.beginPath();
-        canvasCtx.arc(cx, cy, 8, 0, 2 * Math.PI);
+        canvasCtx.arc(leftPalmCenter.x, leftPalmCenter.y, 8, 0, 2 * Math.PI);
         canvasCtx.fillStyle = 'yellow';
         canvasCtx.fill();
     }
@@ -132,16 +144,18 @@ function onResults(results) {
             sumX += lm.x * canvasElement.width;
             sumY += lm.y * canvasElement.height;
         }
-        const cx = sumX / results.rightHandLandmarks.length;
-        const cy = sumY / results.rightHandLandmarks.length;
-        rightPalmCenter = { x: cx, y: cy };
+        rightPalmCenter = {
+            x: sumX / results.rightHandLandmarks.length,
+            y: sumY / results.rightHandLandmarks.length
+        };
         canvasCtx.beginPath();
-        canvasCtx.arc(cx, cy, 8, 0, 2 * Math.PI);
+        canvasCtx.arc(rightPalmCenter.x, rightPalmCenter.y, 8, 0, 2 * Math.PI);
         canvasCtx.fillStyle = 'cyan';
         canvasCtx.fill();
     }
 
-    if (leftPalmCenter && rightPalmCenter && eyeThreshold !== null && bellyThreshold !== null) {
+    // Check if both hands are above eyes
+    if (leftPalmCenter && rightPalmCenter && eyeThreshold !== null) {
         const leftY = leftPalmCenter.y;
         const rightY = rightPalmCenter.y;
         const handsAboveEyes = leftY < eyeThreshold && rightY < eyeThreshold;
@@ -161,8 +175,9 @@ function onResults(results) {
         }
     }
 
-    if (leftPalmCenter && rightPalmCenter && hipThreshold !== null) {
-        if (leftPalmCenter.y > hipThreshold && rightPalmCenter.y > hipThreshold) {
+    // Check if both hands are below the offset hip threshold
+    if (leftPalmCenter && rightPalmCenter && hipThresholdOffset !== null) {
+        if (leftPalmCenter.y > hipThresholdOffset && rightPalmCenter.y > hipThresholdOffset) {
             if (bothHandsUnderStartTime === null) {
                 bothHandsUnderStartTime = Date.now();
                 popUpShown = false;
@@ -180,10 +195,12 @@ function onResults(results) {
     canvasCtx.restore();
 }
 
+// Setup MediaPipe Holistic model
 const holistic = new Holistic({
     locateFile: file => `https://cdn.jsdelivr.net/npm/@mediapipe/holistic/${file}`
 });
 
+// Holistic model options
 holistic.setOptions({
     modelComplexity: 1,
     smoothLandmarks: true,
@@ -194,8 +211,10 @@ holistic.setOptions({
     minTrackingConfidence: 0.5
 });
 
+// Register the callback handler for results
 holistic.onResults(onResults);
 
+// Setup and start the camera
 const camera = new Camera(videoElement, {
     onFrame: async () => {
         await holistic.send({ image: videoElement });
