@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator"
 
 const Feedback = ({ entries }) => {
   const isLoading = !entries || entries.length === 0;
@@ -16,6 +17,7 @@ const Feedback = ({ entries }) => {
           <h3>Feedback</h3>
         </CardTitle>
       </CardHeader>
+      <Separator />
       <div className="border-b border-gray-300 my-2" />
       <CardContent>
         <div className="pad">
