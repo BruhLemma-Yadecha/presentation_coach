@@ -1,4 +1,5 @@
 import React from 'react';
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const PresentationHistory = ({ history }) => {
     // Use provided history or an empty array if history is not provided or empty
@@ -7,10 +8,10 @@ const PresentationHistory = ({ history }) => {
     return (
         <div className="w-full h-full p-4 bg-zinc-850 rounded-lg shadow-inner">
             <h3 className="text-xl font-semibold mb-3 text-white">Presentation Timeline</h3>
-            {/* Scrollable container for history items */}
-            <div className="h-[calc(60vh-4rem)] overflow-y-auto pr-2 custom-scrollbar"> {/* Adjust height as needed */}
+            {/* Scrollable container for history items using Shadcn ScrollArea */}
+            <ScrollArea className="h-[calc(60vh-4rem)]">
                 {displayHistory.length > 0 ? (
-                    <div className="space-y-3">
+                    <div className="space-y-3 pr-2">
                         {displayHistory.map((item, index) => (
                             <div 
                                 key={index} 
@@ -31,7 +32,7 @@ const PresentationHistory = ({ history }) => {
                 ) : (
                     <p className="text-zinc-400 text-center py-10">No history available</p>
                 )}
-            </div>
+            </ScrollArea>
         </div>
     );
 };
