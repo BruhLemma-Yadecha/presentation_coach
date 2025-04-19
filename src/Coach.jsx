@@ -285,6 +285,11 @@ const Coach = ({ setHistory, setEnd }) => {
 
       // Movement detection logic
       if (results.poseLandmarks) {
+
+        // 11 -> left shoulder
+        // 12 -> right shoulder
+        // 23 -> left hip
+        // 24 -> right hip
         const coreIndices = [11, 12, 23, 24]; // shoulders and hips
         let sumX = 0,
           sumY = 0;
@@ -425,7 +430,6 @@ const Coach = ({ setHistory, setEnd }) => {
             position: "fixed",
             top: 10,
             right: 10,
-            width: "71%",
             height: "70vh",
             zIndex: 100,
             borderRadius: "10px",
