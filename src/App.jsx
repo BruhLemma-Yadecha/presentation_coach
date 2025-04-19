@@ -2,35 +2,44 @@ import { useState } from "react";
 import "./App.css";
 import Coach from "./Coach.jsx";
 import { Button } from "@/components/ui/button";
+import Epilogue from './Epilogue.jsx'
 
 function App() {
   const [start, setStart] = useState(false);
+  const [history, setHistory] = useState([]);
+  const [end, setEnd] = useState(false);
 
   return (
     <>
-      {start ? (
-        <div>
-          <div
-            style={{
-              position: "fixed",
-              top: 0,
-              width: "100%",
-              height: "100vh",
-              zIndex: 100,
-            }}
-          >
-            <Coach />
-          </div>
-          <div>
-            <Button id="resetButton" onClick={() => setStart(false)}>
-              Reset
-            </Button>
-          </div>
-        </div>
+      {end ? (
+        <Epilogue history={history}/>
       ) : (
-        <Button id="startButton" onClick={() => setStart(true)}>
-          Start Coach
-        </Button>
+        <>
+          {start ? (
+            <div>
+              <div
+                style={{
+                  position: "fixed",
+                  top: 0,
+                  width: "100%",
+                  height: "100vh",
+                  zIndex: 100,
+                }}
+              >
+                <Coach setHistory={setHistory} setEnd={setEnd}/>
+              </div>
+              <div>
+                <Button id="resetButton" onClick={() => setStart(false)}>
+                  Reset
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <Button id="startButton" onClick={() => setStart(true)}>
+              Start Coach
+            </Button>
+          )}
+        </>
       )}
     </>
   );
