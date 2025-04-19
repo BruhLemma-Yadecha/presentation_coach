@@ -2,7 +2,7 @@ import { useState } from "react";
 import "./App.css";
 import Coach from "./Coach.jsx";
 import { Button } from "@/components/ui/button";
-import Epilogue from './Epilogue.jsx'
+import Epilogue from "./Epilogue.jsx";
 
 function App() {
   const [start, setStart] = useState(false);
@@ -12,7 +12,7 @@ function App() {
   return (
     <>
       {end ? (
-        <Epilogue history={history}/>
+        <Epilogue history={history} />
       ) : (
         <>
           {start ? (
@@ -26,7 +26,7 @@ function App() {
                   zIndex: 100,
                 }}
               >
-                <Coach setHistory={setHistory} setEnd={setEnd}/>
+                <Coach setHistory={setHistory} setEnd={setEnd} />
               </div>
               <div>
                 <Button id="resetButton" onClick={() => setStart(false)}>

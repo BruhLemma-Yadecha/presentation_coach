@@ -18,6 +18,7 @@ const EVALUATION_TYPES = {
   HIGH_MOVEMENT: "high_movement",
   NORMAL_MOVEMENT: "normal_movement",
   CAMERA_ERROR: "camera_error",
+  SLOUCHING: "slouching", // New evaluation type for slouch detection
 };
 
 // Main component that handles camera, canvas, and pose detection
@@ -39,6 +40,9 @@ const Coach = ({ setHistory, setEnd }) => {
   const MAX_MOVEMENT_THRESHOLD = 1800; // Too much movement
   const lastMovementStatus = useRef(""); // Tracks last feedback given
   const TIMELINE_MAX_ENTRIES = 16;
+
+  // Slouch detection tracking
+  const lastSlouchStatus = useRef(false);
 
   useEffect(() => {
     const updateDimensions = () => {
@@ -66,7 +70,11 @@ const Coach = ({ setHistory, setEnd }) => {
 
     // Function to show temporary messages
     function updateStatusMessage(message, evaluationType) {
-      const new_entry = { message, timestamp: Date.now(), type: evaluationType };
+      const new_entry = {
+        message,
+        timestamp: Date.now(),
+        type: evaluationType,
+      };
       // Add it to the total history alongside a timestamp
       setHistory((prev) => {
         const next = [...prev, new_entry];
@@ -285,6 +293,88 @@ const Coach = ({ setHistory, setEnd }) => {
 
       // Movement detection logic
       if (results.poseLandmarks) {
+        // Slouch detection - New feature from Coach2.jsx
+        const leftShoulder = results.poseLandmarks[11];
+        const rightShoulder = results.poseLandmarks[12];
+
+        // Fix: Use face mesh for chin instead of pose landmarks
+        // The chin is not available in pose landmarks (which only go up to index 32)
+        let chinPoint = null;
+
+        if (results.faceLandmarks) {
+          // Use bottom of the face (chin area) from face mesh
+          // Index 152 is on the chin in faceLandmarks
+          const chin = results.faceLandmarks[152];
+
+          if (chin) {
+            chinPoint = {
+              x: chin.x * canvasElement.width,
+              y: chin.y * canvasElement.height,
+              z: chin.z,
+            };
+          }
+        }
+
+        // Average shoulder position with z
+        const avgShoulder = {
+          x: ((leftShoulder.x + rightShoulder.x) / 2) * canvasElement.width,
+          y: ((leftShoulder.y + rightShoulder.y) / 2) * canvasElement.height,
+          z: (leftShoulder.z + rightShoulder.z) / 2,
+        };
+
+        // Only proceed with slouch detection if we have both shoulders and chin
+        if (chinPoint) {
+          // Calculate distance from shoulder to chin
+          const dx = avgShoulder.x - chinPoint.x;
+          const dy = avgShoulder.y - chinPoint.y;
+          const dz = (avgShoulder.z - chinPoint.z) * canvasElement.width;
+
+          const shoulderToChinDistance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+          const shoulderToChinDistanceY = Math.abs(dy);
+
+          // Calculate slouch angle
+          const slouchAngle = Math.asin(
+            shoulderToChinDistanceY / shoulderToChinDistance,
+          );
+          const slouchAngleDeg = (slouchAngle * 180) / Math.PI;
+          const slouchAngleThreshold = 5; // degrees
+
+          // Display slouch information on canvas
+          canvasCtx.font = "16px Arial";
+          canvasCtx.fillStyle = "lightgreen";
+          canvasCtx.fillText(
+            `Shoulder–Chin: ${shoulderToChinDistance.toFixed(1)} px`,
+            20,
+            30,
+          );
+          canvasCtx.fillStyle = "skyblue";
+          canvasCtx.fillText(
+            `Vertical: ${shoulderToChinDistanceY.toFixed(1)} px`,
+            20,
+            50,
+          );
+          canvasCtx.fillStyle = "orange";
+          canvasCtx.fillText(`Angle: ${slouchAngleDeg.toFixed(1)}°`, 20, 70);
+
+          // Send slouching feedback if needed
+          if (
+            slouchAngleDeg > slouchAngleThreshold &&
+            !lastSlouchStatus.current
+          ) {
+            updateStatusMessage(
+              "📢 Stand up straight, you're slouching!",
+              EVALUATION_TYPES.SLOUCHING,
+            );
+            lastSlouchStatus.current = true;
+          } else if (
+            slouchAngleDeg <= slouchAngleThreshold &&
+            lastSlouchStatus.current
+          ) {
+            lastSlouchStatus.current = false;
+          }
+        }
+
+        // Movement tracking (uses core points for movement detection)
         const coreIndices = [11, 12, 23, 24]; // shoulders and hips
         let sumX = 0,
           sumY = 0;
@@ -311,7 +401,7 @@ const Coach = ({ setHistory, setEnd }) => {
           }
 
           // Display feedback based on total movement
-          if (!eyesPopUpShown && !popUpShown) {
+          if (!eyesPopUpShown && !popUpShown && !lastSlouchStatus.current) {
             if (
               totalDistance < MIN_MOVEMENT_THRESHOLD &&
               lastMovementStatus.current !== "low"
