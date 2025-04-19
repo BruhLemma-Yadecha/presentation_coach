@@ -1,5 +1,3 @@
-
-
 import { useRef, useState, useEffect } from "react";
 import Feedback from "./Feedback.jsx";
 import { Camera } from "@mediapipe/camera_utils";
@@ -12,8 +10,18 @@ import {
 } from "@mediapipe/holistic";
 import Timeline from "./Timeline.jsx";
 
+// Evaluation types constants
+const EVALUATION_TYPES = {
+  HANDS_ABOVE_EYES: "hands_above_eyes",
+  HANDS_BELOW_HIPS: "hands_below_hips",
+  LOW_MOVEMENT: "low_movement",
+  HIGH_MOVEMENT: "high_movement",
+  NORMAL_MOVEMENT: "normal_movement",
+  CAMERA_ERROR: "camera_error",
+};
+
 // Main component that handles camera, canvas, and pose detection
-const Coach = () => {
+const Coach = ({ setHistory, setEnd }) => {
   // Refs to access video and canvas elements directly
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -57,12 +65,19 @@ const Coach = () => {
     let statusTimeout = null;
 
     // Function to show temporary messages
-    function updateStatusMessage(message) {
+    function updateStatusMessage(message, evaluationType) {
+      const new_entry = { message, timestamp: Date.now(), type: evaluationType };
+      // Add it to the total history alongside a timestamp
+      setHistory((prev) => {
+        const next = [...prev, new_entry];
+        return next;
+      });
+
       if (message !== lastStatusMessage) {
         lastStatusMessage = message;
         setStatusMessage(message);
         setTimelineEntries((prev) => {
-          const next = [...prev, { message, timestamp: Date.now() }];
+          const next = [...prev, new_entry];
           if (next.length > TIMELINE_MAX_ENTRIES) {
             next.shift(); // Remove oldest
           }
@@ -98,7 +113,13 @@ const Coach = () => {
 
       // Draw the camera image onto the canvas
       if (results.image) {
-        canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+        canvasCtx.drawImage(
+          results.image,
+          0,
+          0,
+          canvasElement.width,
+          canvasElement.height,
+        );
       }
 
       // Draw pose skeleton
@@ -135,10 +156,15 @@ const Coach = () => {
 
       // Draw right hand
       if (results.rightHandLandmarks) {
-        drawConnectors(canvasCtx, results.rightHandLandmarks, HAND_CONNECTIONS, {
-          color: "#00CC00",
-          lineWidth: 5,
-        });
+        drawConnectors(
+          canvasCtx,
+          results.rightHandLandmarks,
+          HAND_CONNECTIONS,
+          {
+            color: "#00CC00",
+            lineWidth: 5,
+          },
+        );
         drawLandmarks(canvasCtx, results.rightHandLandmarks, {
           color: "#FF0000",
           lineWidth: 2,
@@ -177,10 +203,12 @@ const Coach = () => {
       }
 
       // Get average hand position for both hands
-      let leftPalmCenter = null, rightPalmCenter = null;
+      let leftPalmCenter = null,
+        rightPalmCenter = null;
 
       if (results.leftHandLandmarks) {
-        let sumX = 0, sumY = 0;
+        let sumX = 0,
+          sumY = 0;
         for (const lm of results.leftHandLandmarks) {
           sumX += lm.x * canvasElement.width;
           sumY += lm.y * canvasElement.height;
@@ -192,7 +220,8 @@ const Coach = () => {
       }
 
       if (results.rightHandLandmarks) {
-        let sumX = 0, sumY = 0;
+        let sumX = 0,
+          sumY = 0;
         for (const lm of results.rightHandLandmarks) {
           sumX += lm.x * canvasElement.width;
           sumY += lm.y * canvasElement.height;
@@ -205,13 +234,20 @@ const Coach = () => {
 
       // Warning if both hands are above the eyes
       if (leftPalmCenter && rightPalmCenter && eyeThreshold !== null) {
-        const handsAboveEyes = leftPalmCenter.y < eyeThreshold && rightPalmCenter.y < eyeThreshold;
+        const handsAboveEyes =
+          leftPalmCenter.y < eyeThreshold && rightPalmCenter.y < eyeThreshold;
         if (handsAboveEyes) {
           if (bothHandsAboveStartTime === null) {
             bothHandsAboveStartTime = Date.now();
             eyesPopUpShown = false;
-          } else if (!eyesPopUpShown && Date.now() - bothHandsAboveStartTime >= 1000) {
-            updateStatusMessage("⚠️ Keep your hands below your eyes");
+          } else if (
+            !eyesPopUpShown &&
+            Date.now() - bothHandsAboveStartTime >= 1000
+          ) {
+            updateStatusMessage(
+              "⚠️ Keep your hands below your eyes",
+              EVALUATION_TYPES.HANDS_ABOVE_EYES,
+            );
             eyesPopUpShown = true;
             lastMovementStatus.current = "";
           }
@@ -223,12 +259,21 @@ const Coach = () => {
 
       // Warning if both hands are below the hips
       if (leftPalmCenter && rightPalmCenter && hipThresholdOffset !== null) {
-        if (leftPalmCenter.y > hipThresholdOffset && rightPalmCenter.y > hipThresholdOffset) {
+        if (
+          leftPalmCenter.y > hipThresholdOffset &&
+          rightPalmCenter.y > hipThresholdOffset
+        ) {
           if (bothHandsUnderStartTime === null) {
             bothHandsUnderStartTime = Date.now();
             popUpShown = false;
-          } else if (!popUpShown && Date.now() - bothHandsUnderStartTime >= 5000) {
-            updateStatusMessage("🙌 Hands up");
+          } else if (
+            !popUpShown &&
+            Date.now() - bothHandsUnderStartTime >= 5000
+          ) {
+            updateStatusMessage(
+              "🙌 Hands up",
+              EVALUATION_TYPES.HANDS_BELOW_HIPS,
+            );
             popUpShown = true;
             lastMovementStatus.current = "";
           }
@@ -241,7 +286,8 @@ const Coach = () => {
       // Movement detection logic
       if (results.poseLandmarks) {
         const coreIndices = [11, 12, 23, 24]; // shoulders and hips
-        let sumX = 0, sumY = 0;
+        let sumX = 0,
+          sumY = 0;
         for (const i of coreIndices) {
           const lm = results.poseLandmarks[i];
           sumX += lm.x * canvasElement.width;
@@ -266,11 +312,23 @@ const Coach = () => {
 
           // Display feedback based on total movement
           if (!eyesPopUpShown && !popUpShown) {
-            if (totalDistance < MIN_MOVEMENT_THRESHOLD && lastMovementStatus.current !== "low") {
-              updateStatusMessage("🏃 Be more active");
+            if (
+              totalDistance < MIN_MOVEMENT_THRESHOLD &&
+              lastMovementStatus.current !== "low"
+            ) {
+              updateStatusMessage(
+                "🏃 Be more active",
+                EVALUATION_TYPES.LOW_MOVEMENT,
+              );
               lastMovementStatus.current = "low";
-            } else if (totalDistance > MAX_MOVEMENT_THRESHOLD && lastMovementStatus.current !== "high") {
-              updateStatusMessage("🧘 Try to be a bit calmer");
+            } else if (
+              totalDistance > MAX_MOVEMENT_THRESHOLD &&
+              lastMovementStatus.current !== "high"
+            ) {
+              updateStatusMessage(
+                "🧘 Try to be a bit calmer",
+                EVALUATION_TYPES.HIGH_MOVEMENT,
+              );
               lastMovementStatus.current = "high";
             } else if (
               totalDistance >= MIN_MOVEMENT_THRESHOLD &&
@@ -291,7 +349,8 @@ const Coach = () => {
 
     // Initialize Mediapipe Holistic model
     const holistic = new Holistic({
-      locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/holistic/${file}`,
+      locateFile: (file) =>
+        `https://cdn.jsdelivr.net/npm/@mediapipe/holistic/${file}`,
     });
 
     // Set model options
@@ -335,7 +394,10 @@ const Coach = () => {
         } catch (err) {
           setCameraError(true);
           setShowVideo(true);
-          updateStatusMessage("Camera access error. Please check permissions.");
+          updateStatusMessage(
+            "Camera access error. Please check permissions.",
+            EVALUATION_TYPES.CAMERA_ERROR,
+          );
         }
 
         // Cleanup function
@@ -347,14 +409,17 @@ const Coach = () => {
       })
       .catch((err) => {
         setCameraError(true);
-        updateStatusMessage("Camera access denied. Please allow camera permissions.");
+        updateStatusMessage(
+          "Camera access denied. Please allow camera permissions.",
+          EVALUATION_TYPES.CAMERA_ERROR,
+        );
       });
   }, []);
 
   // Render HTML elements: canvas, video, status messages
   return (
     <div>
-      <div style={{width:"70%"}}>
+      <div style={{ width: "70%" }}>
         <div
           style={{
             position: "fixed",
@@ -414,20 +479,26 @@ const Coach = () => {
             }}
           ></canvas>
         </div>
-        <div style={{
+        <div
+          style={{
             position: "fixed",
             top: 10,
             left: 10,
             width: "28%",
             color: "white",
-          }}>
-            <div style={{textAlign: "center"}}>
-              <Timeline entries={timelineEntries} />
-            </div>
-            
+          }}
+        >
+          <div style={{ textAlign: "center" }}>
+            <Timeline entries={timelineEntries} />
+          </div>
         </div>
-        <div style={{position: "fixed", bottom: 20, left: 20}}>
-          <button style={{width: "26vw", padding:"1em", fontWeight:"bolder"}}>End</button>
+        <div style={{ position: "fixed", bottom: 20, left: 20 }}>
+          <button
+            style={{ width: "26vw", padding: "1em", fontWeight: "bolder" }}
+            onClick={() => setEnd(true)}
+          >
+            End
+          </button>
         </div>
       </div>
       <div>
@@ -446,7 +517,7 @@ const Coach = () => {
             boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
           }}
         >
-          <Feedback  entries={timelineEntries}/>
+          <Feedback entries={timelineEntries} />
         </div>
       </div>
     </div>
