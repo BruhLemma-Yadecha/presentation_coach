@@ -32,20 +32,6 @@ const Coach = ({ setHistory, setEnd }) => {
   const [cameraError, setCameraError] = useState(false);
   const [showVideo, setShowVideo] = useState(false);
   const [timelineEntries, setTimelineEntries] = useState([]);
-  const [hasCheckedHands, setHasCheckedHands] = useState(true);
-
-  // Grace period for hand detection
-  useEffect(() => {
-    setTimeout(() => {
-      setHasCheckedHands(false);
-    }, 5000);
-  }, []);
-
-  const resetHandChecker = () => {
-    setTimeout(() => {
-      setHasCheckedHands(false);
-    }, 5000);
-  };
 
   // Buffer to store recent movement points
   const batchBuffer = useRef([]);
@@ -305,36 +291,6 @@ const Coach = ({ setHistory, setEnd }) => {
         }
       }
 
-      
-
-      // No hands detected
-      // if (
-      //   !results.leftHandLandmarks &&
-      //   !results.rightHandLandmarks &&
-      //   !popUpShown &&
-      //   !eyesPopUpShown
-      // ) {
-      //   if (hasCheckedHands) {
-      //     setTimeout(() => {
-      //       updateStatusMessage(
-      //         "🤚 No hands detected",
-      //         EVALUATION_TYPES.HANDS_ABOVE_EYES,
-      //       );
-      //       lastMovementStatus.current = "No hands detected";
-      //       setHasCheckedHands(true);
-      //       resetHandChecker();
-      //     }
-      //     , 5000);
-      //   } else {
-      //   }
-      //   bothHandsAboveStartTime = null;
-      //   bothHandsUnderStartTime = null;
-      //   eyesPopUpShown = false;
-      //   popUpShown = false;
-      //   lastSlouchStatus.current = false; // Reset slouch status when no hands
-      //   return;
-      // }
-
       // Movement detection logic
       if (results.poseLandmarks) {
         // Slouch detection - New feature from Coach2.jsx
@@ -346,23 +302,17 @@ const Coach = ({ setHistory, setEnd }) => {
         let chinPoint = null;
 
         if (results.faceLandmarks) {
-          // console.log("Chin landmark:", results.faceLandmarks?.[152]);
           // Use bottom of the face (chin area) from face mesh
           // Index 152 is on the chin in faceLandmarks
           const chin = results.faceLandmarks[152];
 
-          if (chin && chin.x !== undefined && chin.y !== undefined && chin.z !== undefined) {
+          if (chin) {
             chinPoint = {
               x: chin.x * canvasElement.width,
               y: chin.y * canvasElement.height,
               z: chin.z,
             };
-          } else {
-            // console.warn("Chin data incomplete — skipping slouch detection.");
-            return; 
           }
-
-          // console.log("Chin point ready for slouch: ", chinPoint);
         }
 
         // Average shoulder position with z
@@ -383,135 +333,32 @@ const Coach = ({ setHistory, setEnd }) => {
           const shoulderToChinDistanceY = Math.abs(dy);
 
           // Calculate slouch angle
-          // const slouchAngle = Math.asin(
-          //   shoulderToChinDistanceY / shoulderToChinDistance,
-          // );
-          // const slouchAngleDeg = (slouchAngle * 180) / Math.PI;
-          const slouchAngleThreshold = 3; // degrees
-
-
-          const ratio = Math.min(1, Math.max(0, shoulderToChinDistanceY / shoulderToChinDistance));
-          const slouchAngle = Math.asin(ratio); 
-          const slouchAngleDeg = (slouchAngle * 180) / Math.PI; 
-
-
-          let slouchBaseline = null;
-          let slouchHistory = [];
-          const SLOUCH_SMOOTH_WINDOW = 5;
-          
-
-          // const useSlouchTracking = (canvasElement, canvasCtx, slouchAngleDeg) => {
-          const rawSlouchAngle = slouchAngleDeg;
-
-          //   if (slouchBaseline.current === null) {
-          //     slouchBaseline.current = rawSlouchAngle;
-          //   }
-  
-          //   slouchHistory.current.push(correctedAngle);
-          //   if (slouchHistory.current.length > SLOUCH_SMOOTH_WINDOW) {
-          //     slouchHistory.current.shift();
-          //   }
-
-          //   // Average the recent values
-          //   const smoothedAngle = slouchHistory.current.reduce((a, b) => a + b, 0) / slouchHistory.current.length;
-
-            
-          // }
-
-          const useSlouchTracking = (canvasElement, canvasCtx, slouchAngleDeg) => {
-            // If baseline hasn't been set, use current posture as baseline
-            if (slouchBaseline === null) {
-              slouchBaseline = slouchAngleDeg;
-            }
-          
-            let correctedAngle = Math.max(0, slouchAngleDeg - slouchBaseline);
-          
-            // Add to smoothing window
-            slouchHistory.push(correctedAngle);
-            if (slouchHistory.length > SLOUCH_SMOOTH_WINDOW) {
-              slouchHistory.shift();
-            }
-          
-            // Average the recent values
-            const smoothedAngle =
-              slouchHistory.reduce((a, b) => a + b, 0) /
-              slouchHistory.length;
-          
-
-            return {
-              smoothedAngle,
-              correctedAngle,
-              resetSlouchBaseline: () => {
-                slouchBaseline = null;
-                slouchHistory = [];
-                // console.log("🛠️ Slouch baseline reset.");
-              },
-            };
-          };
-
-          // correctAngle - accounts for normal posture not being perfectly upright
-          const correctAngle = Math.max(0, rawSlouchAngle - slouchBaseline);
-
-          // // Draw background bar
-          // canvasCtx.beginPath();
-          // canvasCtx.rect(meterX, meterY, meterWidth, meterHeight);
-          // canvasCtx.fillStyle = "gray";
-          // canvasCtx.fill();
-
-          // // Draw filled posture level
-          // canvasCtx.beginPath();
-          // canvasCtx.rect(meterX, meterY + meterHeight - fillHeight, meterWidth, fillHeight);
-          // canvasCtx.fillStyle = meterColor;
-          // canvasCtx.fill();
-
-          // // Draw label
-          // canvasCtx.font = "14px Arial";
-          // canvasCtx.fillStyle = "white";
-          // canvasCtx.fillText(postureLabel, meterX - 140, meterY + meterHeight + 20);
+          const slouchAngle = Math.asin(
+            shoulderToChinDistanceY / shoulderToChinDistance,
+          );
+          const slouchAngleDeg = (slouchAngle * 180) / Math.PI;
+          const slouchAngleThreshold = 5; // degrees
 
           // Display slouch information on canvas
           canvasCtx.font = "16px Arial";
           canvasCtx.fillStyle = "lightgreen";
-          canvasCtx.fillText(`Shoulder–Chin: ${shoulderToChinDistance.toFixed(1)} px`,20, 30, );
+          canvasCtx.fillText(
+            `Shoulder–Chin: ${shoulderToChinDistance.toFixed(1)} px`,
+            20,
+            30,
+          );
           canvasCtx.fillStyle = "skyblue";
-          canvasCtx.fillText(`Vertical: ${shoulderToChinDistanceY.toFixed(1)} px`, 20, 50,);
+          canvasCtx.fillText(
+            `Vertical: ${shoulderToChinDistanceY.toFixed(1)} px`,
+            20,
+            50,
+          );
           canvasCtx.fillStyle = "orange";
-          canvasCtx.fillText(`Angle: ${correctAngle.toFixed(1)}°`, 20, 70);
-
-
-          // 3D thingy to simulate depth by adjusting line thickness based on Z
-          const scaleZ = (z) => Math.max(0.5, 1 + z * 3);
-          const brightnessZ = (z) => Math.max(0, Math.min(255, 255 - z * 100));
-          
-          const shoulderScale = scaleZ(avgShoulder.z);
-          const chinScale = scaleZ(chinPoint.z); 
-          const midZ = (avgShoulder.z + chinPoint.z) / 2; 
-          const brightness = brightnessZ(midZ);
-
-          // Drawing th line with per perspec stroke thingy
-          canvasCtx.beginPath();
-          canvasCtx.moveTo(avgShoulder.x, avgShoulder.y);
-          canvasCtx.lineTo(chinPoint.x, chinPoint.y);
-          canvasCtx.strokeStyle = `rgb(${brightness}, 0, 0)`; // red with depth shading
-          canvasCtx.lineWidth = (shoulderScale + chinScale) * 1.5;
-          canvasCtx.stroke();
-
-          // Draw shoulder point
-          canvasCtx.beginPath();
-          canvasCtx.arc(avgShoulder.x, avgShoulder.y, 5 * shoulderScale, 0, 2 * Math.PI);
-          canvasCtx.fillStyle = `rgba(255, 0, 0, 0.9)`;
-          canvasCtx.fill();
-
-          // Draw chin point
-          canvasCtx.beginPath();
-          canvasCtx.arc(chinPoint.x, chinPoint.y, 5 * chinScale, 0, 2 * Math.PI);
-          canvasCtx.fillStyle = `rgba(200, 50, 50, 0.9)`;
-          canvasCtx.fill();
-
+          canvasCtx.fillText(`Angle: ${slouchAngleDeg.toFixed(1)}°`, 20, 70);
 
           // Send slouching feedback if needed
           if (
-            correctAngle > slouchAngleThreshold &&
+            slouchAngleDeg > slouchAngleThreshold &&
             !lastSlouchStatus.current
           ) {
             updateStatusMessage(
@@ -520,7 +367,7 @@ const Coach = ({ setHistory, setEnd }) => {
             );
             lastSlouchStatus.current = true;
           } else if (
-            correctAngle <= slouchAngleThreshold &&
+            slouchAngleDeg <= slouchAngleThreshold &&
             lastSlouchStatus.current
           ) {
             lastSlouchStatus.current = false;
@@ -734,6 +581,14 @@ const Coach = ({ setHistory, setEnd }) => {
             <Timeline entries={timelineEntries} />
           </div>
         </div>
+        <div style={{ position: "fixed", bottom: 20, left: 20 }}>
+          <button
+            style={{ width: "26vw", padding: "1em", fontWeight: "bolder" }}
+            onClick={() => setEnd(true)}
+          >
+            End
+          </button>
+        </div>
       </div>
       <div>
         <div
@@ -759,12 +614,3 @@ const Coach = ({ setHistory, setEnd }) => {
 };
 
 export default Coach;
-
-
-
-          
-
-
-
-
-
