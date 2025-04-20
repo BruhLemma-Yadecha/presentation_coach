@@ -1,5 +1,8 @@
 import PresentationHistory from "./PresentationHistory";
 import FeedbackFrequencies from "./FeedbackFrequencies";
+import { Separator } from "@/components/ui/separator";
+import Summary from "./Summary";
+import Timeline from "./Timeline";
 
 const Epilogue = ({ history }) => {
   // Dummy data for testing scroll functionality (can be removed if history prop is always reliable)
@@ -62,24 +65,48 @@ const Epilogue = ({ history }) => {
   const displayHistory = history && history.length > 0 ? history : dummyHistory;
 
   return (
-    <div className="w-full max-w-4xl mx-auto p-6 bg-zinc-900 rounded-lg shadow-lg">
-      <h2 className="text-2xl font-bold mb-4 text-white text-center">
-        Presentation Summary
-      </h2>
-
-      <div className="flex flex-col md:flex-row gap-6">
-        {/* Left Column: Presentation History */}
-        <div className="w-full md:w-1/2">
-          <PresentationHistory history={displayHistory} />
-        </div>
-
-        {/* Right Column: Feedback Frequencies */}
-        <div className="w-full md:w-1/2">
-          <FeedbackFrequencies history={displayHistory} />
-        </div>
+    <div
+      style={{
+        transform: "translateX(-10%)",
+        height: "92vh",
+        width: "100vw",
+        display: "flex",
+        margin: 0,
+        padding: 0,
+      }}
+    >
+      {/* Timeline (Left 28%) */}
+      <div
+        style={{
+          width: "28%",
+          padding: "10px",
+          overflowY: "auto",
+          backgroundColor: "#1a1a1a", // Optional background
+          color: "white",
+          overflowX: "hidden",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
+          position: "relative",
+          boxShadow: "0 0 10px rgba(0, 0, 0, 0.5)", // Optional shadow for better visibility
+        }}
+      >
+        <Timeline entries={displayHistory} />
+      </div>
+  
+      {/* Summary (Right 72%) */}
+      <div
+        style={{
+          width: "72%",
+          padding: "10px",
+          overflowY: "auto",
+        }}
+      >
+        <Summary history={displayHistory} />
       </div>
     </div>
   );
+  
 };
 
 export default Epilogue;
