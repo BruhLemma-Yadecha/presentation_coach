@@ -312,8 +312,6 @@
 //         }
 //       }
 
-
-
 //       canvasCtx.restore();
 //     }
 
@@ -383,7 +381,6 @@
 //   }, []);
 //   // End of JS code
 
-
 //   return (
 //     <div
 //       className="presentation-coach"
@@ -450,7 +447,6 @@
 // };
 
 // export default Coach;
-
 
 // import { useRef, useState, useEffect } from "react";
 // import { Camera } from "@mediapipe/camera_utils";
@@ -848,8 +844,6 @@
 
 // export default Coach;
 
-
-
 // import { useRef, useState, useEffect } from "react";
 // import { Camera } from "@mediapipe/camera_utils";
 // import { drawConnectors, drawLandmarks } from "@mediapipe/drawing_utils";
@@ -1245,7 +1239,6 @@
 
 // export default Coach;
 
-
 // Import necessary React hooks and Mediapipe utilities
 import { useRef, useState, useEffect } from "react";
 import { Camera } from "@mediapipe/camera_utils";
@@ -1359,7 +1352,13 @@ const Coach = () => {
 
       // Draw the camera image onto the canvas
       if (results.image) {
-        canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+        canvasCtx.drawImage(
+          results.image,
+          0,
+          0,
+          canvasElement.width,
+          canvasElement.height,
+        );
       }
 
       // Draw pose skeleton
@@ -1396,10 +1395,15 @@ const Coach = () => {
 
       // Draw right hand
       if (results.rightHandLandmarks) {
-        drawConnectors(canvasCtx, results.rightHandLandmarks, HAND_CONNECTIONS, {
-          color: "#00CC00",
-          lineWidth: 5,
-        });
+        drawConnectors(
+          canvasCtx,
+          results.rightHandLandmarks,
+          HAND_CONNECTIONS,
+          {
+            color: "#00CC00",
+            lineWidth: 5,
+          },
+        );
         drawLandmarks(canvasCtx, results.rightHandLandmarks, {
           color: "#FF0000",
           lineWidth: 2,
@@ -1438,10 +1442,12 @@ const Coach = () => {
       }
 
       // Get average hand position for both hands
-      let leftPalmCenter = null, rightPalmCenter = null;
+      let leftPalmCenter = null,
+        rightPalmCenter = null;
 
       if (results.leftHandLandmarks) {
-        let sumX = 0, sumY = 0;
+        let sumX = 0,
+          sumY = 0;
         for (const lm of results.leftHandLandmarks) {
           sumX += lm.x * canvasElement.width;
           sumY += lm.y * canvasElement.height;
@@ -1453,7 +1459,8 @@ const Coach = () => {
       }
 
       if (results.rightHandLandmarks) {
-        let sumX = 0, sumY = 0;
+        let sumX = 0,
+          sumY = 0;
         for (const lm of results.rightHandLandmarks) {
           sumX += lm.x * canvasElement.width;
           sumY += lm.y * canvasElement.height;
@@ -1466,12 +1473,16 @@ const Coach = () => {
 
       // Warning if both hands are above the eyes
       if (leftPalmCenter && rightPalmCenter && eyeThreshold !== null) {
-        const handsAboveEyes = leftPalmCenter.y < eyeThreshold && rightPalmCenter.y < eyeThreshold;
+        const handsAboveEyes =
+          leftPalmCenter.y < eyeThreshold && rightPalmCenter.y < eyeThreshold;
         if (handsAboveEyes) {
           if (bothHandsAboveStartTime === null) {
             bothHandsAboveStartTime = Date.now();
             eyesPopUpShown = false;
-          } else if (!eyesPopUpShown && Date.now() - bothHandsAboveStartTime >= 1000) {
+          } else if (
+            !eyesPopUpShown &&
+            Date.now() - bothHandsAboveStartTime >= 1000
+          ) {
             updateStatusMessage("⚠️ Keep your hands below your eyes");
             eyesPopUpShown = true;
             lastMovementStatus.current = "";
@@ -1484,11 +1495,17 @@ const Coach = () => {
 
       // Warning if both hands are below the hips
       if (leftPalmCenter && rightPalmCenter && hipThresholdOffset !== null) {
-        if (leftPalmCenter.y > hipThresholdOffset && rightPalmCenter.y > hipThresholdOffset) {
+        if (
+          leftPalmCenter.y > hipThresholdOffset &&
+          rightPalmCenter.y > hipThresholdOffset
+        ) {
           if (bothHandsUnderStartTime === null) {
             bothHandsUnderStartTime = Date.now();
             popUpShown = false;
-          } else if (!popUpShown && Date.now() - bothHandsUnderStartTime >= 5000) {
+          } else if (
+            !popUpShown &&
+            Date.now() - bothHandsUnderStartTime >= 5000
+          ) {
             updateStatusMessage("🙌 Hands up");
             popUpShown = true;
             lastMovementStatus.current = "";
@@ -1502,7 +1519,8 @@ const Coach = () => {
       // Movement detection logic
       if (results.poseLandmarks) {
         const coreIndices = [11, 12, 23, 24];
-        let sumX = 0, sumY = 0;
+        let sumX = 0,
+          sumY = 0;
         for (const i of coreIndices) {
           const lm = results.poseLandmarks[i];
           sumX += lm.x * canvasElement.width;
@@ -1527,10 +1545,16 @@ const Coach = () => {
 
           // Display feedback based on total movement
           if (!eyesPopUpShown && !popUpShown) {
-            if (totalDistance < MIN_MOVEMENT_THRESHOLD && lastMovementStatus.current !== "low") {
+            if (
+              totalDistance < MIN_MOVEMENT_THRESHOLD &&
+              lastMovementStatus.current !== "low"
+            ) {
               updateStatusMessage("🏃 Be more active");
               lastMovementStatus.current = "low";
-            } else if (totalDistance > MAX_MOVEMENT_THRESHOLD && lastMovementStatus.current !== "high") {
+            } else if (
+              totalDistance > MAX_MOVEMENT_THRESHOLD &&
+              lastMovementStatus.current !== "high"
+            ) {
               updateStatusMessage("🧘 Try to be a bit calmer");
               lastMovementStatus.current = "high";
             } else if (
@@ -1552,7 +1576,8 @@ const Coach = () => {
 
     // Initialize Mediapipe Holistic model
     const holistic = new Holistic({
-      locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/holistic/${file}`,
+      locateFile: (file) =>
+        `https://cdn.jsdelivr.net/npm/@mediapipe/holistic/${file}`,
     });
 
     // Set model options
@@ -1608,7 +1633,9 @@ const Coach = () => {
       })
       .catch((err) => {
         setCameraError(true);
-        updateStatusMessage("Camera access denied. Please allow camera permissions.");
+        updateStatusMessage(
+          "Camera access denied. Please allow camera permissions.",
+        );
       });
   }, []);
 
@@ -1683,4 +1710,86 @@ const Coach = () => {
 
 export default Coach;
 
+<div className="relative w-screen h-screen overflow-hidden">
+  {/* Fullscreen Video Container */}
+  <div
+    className="absolute top-0 left-0 w-full h-full z-0 overflow-hidden"
+    style={{ borderRadius: "20px" }}
+  >
+    {cameraError && (
+      <div
+        className="absolute inset-0 flex items-center justify-center z-50"
+        style={{
+          background: "rgba(0,0,0,0.8)",
+          color: "white",
+          padding: "20px",
+          borderRadius: "20px",
+          maxWidth: "80%",
+          margin: "auto",
+          textAlign: "center",
+        }}
+      >
+        <div>
+          <p className="text-lg font-semibold mb-2">
+            Camera access error. Please check that:
+          </p>
+          <ol className="text-left list-decimal list-inside space-y-1">
+            <li>You've granted camera permissions</li>
+            <li>Your camera is not being used by another application</li>
+            <li>Your browser supports camera access</li>
+          </ol>
+        </div>
+      </div>
+    )}
+    <video
+      ref={videoRef}
+      className="w-full h-full object-cover"
+      style={{
+        display: showVideo ? "block" : "none",
+        borderRadius: "20px",
+      }}
+      autoPlay
+      playsInline
+      muted
+    />
+    <canvas
+      ref={canvasRef}
+      className="absolute top-0 left-0 w-full h-full"
+      style={{
+        display: cameraError ? "none" : "block",
+        borderRadius: "20px",
+      }}
+    />
+  </div>
 
+  {/* Timeline Sidebar */}
+  <div className="fixed top-4 left-4 w-[25%] h-[90%] z-10 p-4 backdrop-blur-md bg-black/50 text-white rounded-xl shadow-lg overflow-auto">
+    <Timeline entries={timelineEntries} />
+  </div>
+
+  {/* Feedback Bar */}
+  <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 w-[90%] h-[24vh] z-10 p-4 backdrop-blur-md bg-black/60 text-white rounded-2xl shadow-lg">
+    <Feedback entries={timelineEntries} />
+  </div>
+
+  {/* Toolbar */}
+  <div className="fixed top-1/2 right-4 transform -translate-y-1/2 z-10 flex flex-col gap-3 p-2 bg-black/50 backdrop-blur-md rounded-xl shadow-lg">
+    <button
+      className="text-white px-3 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 transition"
+      onClick={() => {
+        setEnd(true);
+        setStart(false);
+      }}
+    >
+      End
+    </button>
+    <button
+      className="text-white px-3 py-2 rounded-lg bg-green-500 hover:bg-green-600 transition"
+      onClick={() => {
+        // Add another action
+      }}
+    >
+      Action
+    </button>
+  </div>
+</div>;

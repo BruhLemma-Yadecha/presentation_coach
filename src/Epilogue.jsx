@@ -93,7 +93,7 @@ const Epilogue = ({ history }) => {
       >
         <Timeline entries={displayHistory} />
       </div>
-  
+
       {/* Summary (Right 72%) */}
       <div
         style={{
@@ -106,7 +106,6 @@ const Epilogue = ({ history }) => {
       </div>
     </div>
   );
-  
 };
 
 export default Epilogue;

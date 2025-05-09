@@ -7,7 +7,10 @@ import {
 } from "@mediapipe/holistic";
 import Timeline from "./Timeline.jsx";
 import EVALUATION_TYPES from "./EvaluationTypes";
-import { initializeHolisticModel, HolisticResults } from "./lib/holisticService";
+import {
+  initializeHolisticModel,
+  HolisticResults,
+} from "./lib/holisticService";
 import { setupCamera } from "./lib/cameraService";
 import {
   clearCanvas,
@@ -54,7 +57,9 @@ const Coach: React.FC<CoachProps> = ({ setHistory, setEnd }) => {
   const [cameraError, setCameraError] = useState<boolean>(false);
   const [showVideo, setShowVideo] = useState<boolean>(false);
   const [timelineEntries, setTimelineEntries] = useState<TimelineEntry[]>([]);
-  const batchBuffer = useRef<Array<{ x: number; y: number; timestamp: number }>>([]);
+  const batchBuffer = useRef<
+    Array<{ x: number; y: number; timestamp: number }>
+  >([]);
   const lastMovementStatus = useRef<string>("");
   const lastSlouchStatus = useRef<boolean>(false);
 
@@ -97,8 +102,10 @@ const Coach: React.FC<CoachProps> = ({ setHistory, setEnd }) => {
       if (canvasRef.current && videoRef.current) {
         // Set canvas dimensions based on its parent or a fixed size
         // For fullscreen-like behavior, ensure parent containers allow this.
-        const parentWidth = canvasRef.current.parentElement?.clientWidth || window.innerWidth;
-        const parentHeight = canvasRef.current.parentElement?.clientHeight || window.innerHeight;
+        const parentWidth =
+          canvasRef.current.parentElement?.clientWidth || window.innerWidth;
+        const parentHeight =
+          canvasRef.current.parentElement?.clientHeight || window.innerHeight;
         canvasRef.current.width = parentWidth;
         canvasRef.current.height = parentHeight;
         // Video dimensions can be handled by CSS (object-fit) or set here if needed
@@ -162,16 +169,28 @@ const Coach: React.FC<CoachProps> = ({ setHistory, setEnd }) => {
       );
 
       // Update refs from gestureCheckResult
-      bothHandsUnderStartTimeRef.current = gestureCheckResult.bothHandsUnderStartTime;
+      bothHandsUnderStartTimeRef.current =
+        gestureCheckResult.bothHandsUnderStartTime;
       popUpShownRef.current = gestureCheckResult.popUpShown;
-      bothHandsAboveStartTimeRef.current = gestureCheckResult.bothHandsAboveStartTime;
+      bothHandsAboveStartTimeRef.current =
+        gestureCheckResult.bothHandsAboveStartTime;
       eyesPopUpShownRef.current = gestureCheckResult.eyesPopUpShown;
 
       if (gestureCheckResult.eyeThreshold !== null) {
-        ThresholdLine(canvasCtx, gestureCheckResult.eyeThreshold, canvasElement.width, "lightblue");
+        ThresholdLine(
+          canvasCtx,
+          gestureCheckResult.eyeThreshold,
+          canvasElement.width,
+          "lightblue",
+        );
       }
       if (gestureCheckResult.hipThresholdOffset !== null) {
-        ThresholdLine(canvasCtx, gestureCheckResult.hipThresholdOffset, canvasElement.width, "orange");
+        ThresholdLine(
+          canvasCtx,
+          gestureCheckResult.hipThresholdOffset,
+          canvasElement.width,
+          "orange",
+        );
       }
 
       // Slouch and Movement Detection (Ported from original, needs further modularization if desired)
@@ -182,7 +201,12 @@ const Coach: React.FC<CoachProps> = ({ setHistory, setEnd }) => {
 
         if (results.faceLandmarks && results.faceLandmarks[152]) {
           const chin = results.faceLandmarks[152];
-          if (chin && chin.x !== undefined && chin.y !== undefined && chin.z !== undefined) {
+          if (
+            chin &&
+            chin.x !== undefined &&
+            chin.y !== undefined &&
+            chin.z !== undefined
+          ) {
             chinPoint = {
               x: chin.x * canvasElement.width,
               y: chin.y * canvasElement.height,
@@ -204,14 +228,20 @@ const Coach: React.FC<CoachProps> = ({ setHistory, setEnd }) => {
           const shoulderToChinDistance = Math.sqrt(dx * dx + dy * dy + dz * dz);
           const shoulderToChinDistanceY = Math.abs(dy);
 
-          const ratio = Math.min(1, Math.max(0, shoulderToChinDistanceY / shoulderToChinDistance));
+          const ratio = Math.min(
+            1,
+            Math.max(0, shoulderToChinDistanceY / shoulderToChinDistance),
+          );
           const slouchAngleRad = Math.asin(ratio);
           const rawSlouchAngleDeg = (slouchAngleRad * 180) / Math.PI;
 
           if (slouchBaselineRef.current === null) {
             slouchBaselineRef.current = rawSlouchAngleDeg;
           }
-          let correctedAngle = Math.max(0, rawSlouchAngleDeg - (slouchBaselineRef.current || 0));
+          let correctedAngle = Math.max(
+            0,
+            rawSlouchAngleDeg - (slouchBaselineRef.current || 0),
+          );
 
           slouchHistoryRef.current.push(correctedAngle);
           if (slouchHistoryRef.current.length > SLOUCH_SMOOTH_WINDOW) {
@@ -221,18 +251,45 @@ const Coach: React.FC<CoachProps> = ({ setHistory, setEnd }) => {
             slouchHistoryRef.current.reduce((a, b) => a + b, 0) /
             slouchHistoryRef.current.length;
 
-          DebugText(canvasCtx, `Shoulder–Chin: ${shoulderToChinDistance.toFixed(1)} px`, 20, 30, "lightgreen");
-          DebugText(canvasCtx, `Vertical: ${shoulderToChinDistanceY.toFixed(1)} px`, 20, 50, "skyblue");
-          DebugText(canvasCtx, `Angle: ${smoothedAngle.toFixed(1)}°`, 20, 70, "orange");
+          DebugText(
+            canvasCtx,
+            `Shoulder–Chin: ${shoulderToChinDistance.toFixed(1)} px`,
+            20,
+            30,
+            "lightgreen",
+          );
+          DebugText(
+            canvasCtx,
+            `Vertical: ${shoulderToChinDistanceY.toFixed(1)} px`,
+            20,
+            50,
+            "skyblue",
+          );
+          DebugText(
+            canvasCtx,
+            `Angle: ${smoothedAngle.toFixed(1)}°`,
+            20,
+            70,
+            "orange",
+          );
 
-          PerspectiveLine(canvasCtx, avgShoulder, chinPoint, [255,0,0], 1.5);
+          PerspectiveLine(canvasCtx, avgShoulder, chinPoint, [255, 0, 0], 1.5);
           LandmarkArc(canvasCtx, avgShoulder, 5, "rgba(255, 0, 0, 0.9)");
           LandmarkArc(canvasCtx, chinPoint, 5, "rgba(200, 50, 50, 0.9)");
 
-          if (smoothedAngle > SLOUCH_ANGLE_THRESHOLD && !lastSlouchStatus.current) {
-            updateStatusMessageHandler("📢 Stand up straight, you're slouching!", EVALUATION_TYPES.SLOUCHING);
+          if (
+            smoothedAngle > SLOUCH_ANGLE_THRESHOLD &&
+            !lastSlouchStatus.current
+          ) {
+            updateStatusMessageHandler(
+              "📢 Stand up straight, you're slouching!",
+              EVALUATION_TYPES.SLOUCHING,
+            );
             lastSlouchStatus.current = true;
-          } else if (smoothedAngle <= SLOUCH_ANGLE_THRESHOLD && lastSlouchStatus.current) {
+          } else if (
+            smoothedAngle <= SLOUCH_ANGLE_THRESHOLD &&
+            lastSlouchStatus.current
+          ) {
             // clearStatusMessageHandler(); // Or specific message for good posture
             lastSlouchStatus.current = false;
           }
@@ -240,23 +297,23 @@ const Coach: React.FC<CoachProps> = ({ setHistory, setEnd }) => {
 
         // Movement tracking
         const coreIndices = [11, 12, 23, 24]; // shoulders and hips
-        let sumX = 0, sumY = 0;
+        let sumX = 0,
+          sumY = 0;
         for (const i of coreIndices) {
           const lm = results.poseLandmarks[i];
-          if(lm){
+          if (lm) {
             sumX += lm.x * canvasElement.width;
             sumY += lm.y * canvasElement.height;
           }
         }
-        if (coreIndices.every(i => results.poseLandmarks[i])){
-            const avgPoint = {
-              x: sumX / coreIndices.length,
-              y: sumY / coreIndices.length,
-              timestamp: Date.now(),
-            };
-            batchBuffer.current.push(avgPoint);
+        if (coreIndices.every((i) => results.poseLandmarks[i])) {
+          const avgPoint = {
+            x: sumX / coreIndices.length,
+            y: sumY / coreIndices.length,
+            timestamp: Date.now(),
+          };
+          batchBuffer.current.push(avgPoint);
         }
-        
 
         if (batchBuffer.current.length >= BATCH_SIZE) {
           let totalDistance = 0;
@@ -266,12 +323,28 @@ const Coach: React.FC<CoachProps> = ({ setHistory, setEnd }) => {
             totalDistance += Math.sqrt(dx * dx + dy * dy);
           }
 
-          if (!popUpShownRef.current && !eyesPopUpShownRef.current && !lastSlouchStatus.current) {
-            if (totalDistance < MIN_MOVEMENT_THRESHOLD && lastMovementStatus.current !== "low") {
-              updateStatusMessageHandler("🏃 Be more active", EVALUATION_TYPES.LOW_MOVEMENT);
+          if (
+            !popUpShownRef.current &&
+            !eyesPopUpShownRef.current &&
+            !lastSlouchStatus.current
+          ) {
+            if (
+              totalDistance < MIN_MOVEMENT_THRESHOLD &&
+              lastMovementStatus.current !== "low"
+            ) {
+              updateStatusMessageHandler(
+                "🏃 Be more active",
+                EVALUATION_TYPES.LOW_MOVEMENT,
+              );
               lastMovementStatus.current = "low";
-            } else if (totalDistance > MAX_MOVEMENT_THRESHOLD && lastMovementStatus.current !== "high") {
-              updateStatusMessageHandler("🧘 Try to be a bit calmer", EVALUATION_TYPES.HIGH_MOVEMENT);
+            } else if (
+              totalDistance > MAX_MOVEMENT_THRESHOLD &&
+              lastMovementStatus.current !== "high"
+            ) {
+              updateStatusMessageHandler(
+                "🧘 Try to be a bit calmer",
+                EVALUATION_TYPES.HIGH_MOVEMENT,
+              );
               lastMovementStatus.current = "high";
             } else if (
               totalDistance >= MIN_MOVEMENT_THRESHOLD &&
@@ -287,7 +360,12 @@ const Coach: React.FC<CoachProps> = ({ setHistory, setEnd }) => {
       }
       restoreCanvas(canvasCtx);
     },
-    [updateStatusMessageHandler, clearStatusMessageHandler, setHistory, timelineEntries] // Added dependencies
+    [
+      updateStatusMessageHandler,
+      clearStatusMessageHandler,
+      setHistory,
+      timelineEntries,
+    ], // Added dependencies
   );
 
   useEffect(() => {
@@ -326,24 +404,20 @@ const Coach: React.FC<CoachProps> = ({ setHistory, setEnd }) => {
 
   return (
     <div>
-      {/* Video and Canvas Container - Adjusted for better layout control */}
-      <div 
+      <div
+        className="fixed-container"
         style={{
-          position: "fixed", 
-          top: 10, 
-          right: 10, 
-          width: "calc(70% - 20px)", // Adjusted width
-          height: "calc(70vh - 20px)", // Adjusted height
-          zIndex: 100, 
-          borderRadius: "10px", 
-          overflow: "hidden", 
-          boxShadow: "0 4px 12px rgba(0,0,0,0.3)"
+          top: 20,
+          right: 20,
+          width: "68%",
+          height: "65vh",
+          zIndex: 100,
         }}
       >
         {cameraError && (
           <div
             style={{
-              position: "absolute", // Changed from fixed to be relative to parent
+              position: "absolute",
               top: "50%",
               left: "50%",
               transform: "translate(-50%, -50%)",
@@ -352,7 +426,7 @@ const Coach: React.FC<CoachProps> = ({ setHistory, setEnd }) => {
               padding: "20px",
               borderRadius: "20px",
               maxWidth: "80%",
-              zIndex: 1000, // Ensure it's above canvas/video
+              zIndex: 1000,
               textAlign: "center",
             }}
           >
@@ -367,7 +441,7 @@ const Coach: React.FC<CoachProps> = ({ setHistory, setEnd }) => {
         <video
           ref={videoRef}
           style={{
-            display: showVideo ? "block" : "none", // Controlled by showVideo state
+            display: showVideo ? "block" : "none",
             width: "100%",
             height: "100%",
             objectFit: "cover",
@@ -384,44 +458,42 @@ const Coach: React.FC<CoachProps> = ({ setHistory, setEnd }) => {
             left: 0,
             width: "100%",
             height: "100%",
-            display: cameraError ? "none" : "block", // Hide canvas if camera error to show message
+            display: cameraError ? "none" : "block",
           }}
         ></canvas>
       </div>
 
-      {/* Timeline Container */}
-      <div 
-        style={{
-          position: "fixed", 
-          top: 10, 
-          left: 10, 
-          width: "calc(30% - 20px)", // Adjusted width
-          color: "white"
-        }}
+      <div
+        className="fixed-container"
+        style={{ top: 20, left: 20, width: "28%" }}
       >
-        <div style={{ textAlign: "center" }}>
+        <div style={{ textAlign: "center", padding: "1em" }}>
           <Timeline entries={timelineEntries} />
         </div>
       </div>
 
-      {/* Feedback Container */}
-      <div 
+      <div
+        className="fixed-container"
         style={{
-          position: "fixed", 
-          bottom: 10, 
-          right: 10, 
-          width: "calc(70% - 20px)", // Adjusted width
-          height: "calc(30vh - 20px - 10px)", // Adjusted height, considering top margin of canvas/video
-          padding: "10px", 
-          backgroundColor: "rgba(0, 0, 0, 0.7)", 
-          color: "white", 
-          textAlign: "center", 
-          borderRadius: "20px", 
-          boxShadow: "0 4px 12px rgba(0,0,0,0.3)"
+          bottom: 20,
+          right: 20,
+          width: "68%",
+          height: "25vh",
+          padding: "1em",
+          backgroundColor: "rgba(0, 0, 0, 0.7)",
         }}
       >
-        {/* Display statusMessage directly for immediate feedback */}
-        {statusMessage && <div style={{ marginBottom: '10px', fontSize: '1.2em', color: 'lightcoral' }}>{statusMessage}</div>}
+        {statusMessage && (
+          <div
+            style={{
+              marginBottom: "10px",
+              fontSize: "1.2em",
+              color: "lightcoral",
+            }}
+          >
+            {statusMessage}
+          </div>
+        )}
         <Feedback entries={timelineEntries} />
       </div>
     </div>

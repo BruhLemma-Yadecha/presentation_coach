@@ -19,7 +19,7 @@ export const updateStatus = (
   evaluationType: EvaluationType,
   setHistory: React.Dispatch<React.SetStateAction<TimelineEntry[]>>,
   currentTimelineEntries: TimelineEntry[],
-  timelineMaxEntries: number
+  timelineMaxEntries: number,
 ): { newStatusMessage: string; newTimelineEntries: TimelineEntry[] } => {
   const newEntry: TimelineEntry = {
     message,
@@ -60,10 +60,13 @@ export const clearStatus = (): { newStatusMessage: string } => {
 };
 
 // Function to be called by the component to clear the message after the timeout
-export const getStatusClearer = (setStatusMessage: React.Dispatch<React.SetStateAction<string>>) => {
+export const getStatusClearer = (
+  setStatusMessage: React.Dispatch<React.SetStateAction<string>>,
+) => {
   return () => {
-    if (lastStatusMessage === "") { // Only clear if the timeout intended to clear this message
-        setStatusMessage("");
+    if (lastStatusMessage === "") {
+      // Only clear if the timeout intended to clear this message
+      setStatusMessage("");
     }
   };
 };

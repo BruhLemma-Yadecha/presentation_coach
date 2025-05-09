@@ -1,4 +1,8 @@
-import { Results, LandmarkConnectionArray, NormalizedLandmarkList } from "@mediapipe/holistic";
+import {
+  Results,
+  LandmarkConnectionArray,
+  NormalizedLandmarkList,
+} from "@mediapipe/holistic";
 import { drawConnectors, drawLandmarks } from "@mediapipe/drawing_utils";
 
 interface DrawingOptions {
@@ -13,7 +17,10 @@ export const Pose = (
   options: DrawingOptions,
 ) => {
   drawConnectors(canvasCtx, landmarks, connections, options);
-  drawLandmarks(canvasCtx, landmarks, { ...options, lineWidth: options.lineWidth / 2 }); // Smaller lineWidth for landmarks
+  drawLandmarks(canvasCtx, landmarks, {
+    ...options,
+    lineWidth: options.lineWidth / 2,
+  }); // Smaller lineWidth for landmarks
 };
 
 export const FaceMesh = (
@@ -32,7 +39,10 @@ export const Hand = (
   options: DrawingOptions,
 ) => {
   drawConnectors(canvasCtx, landmarks, connections, options);
-  drawLandmarks(canvasCtx, landmarks, { ...options, lineWidth: options.lineWidth / 2 });
+  drawLandmarks(canvasCtx, landmarks, {
+    ...options,
+    lineWidth: options.lineWidth / 2,
+  });
 };
 
 export const ThresholdLine = (
@@ -71,11 +81,13 @@ export const PerspectiveLine = (
   baseLineWidth: number,
 ) => {
   const scaleZ = (z: number | undefined) => (z ? Math.max(0.5, 1 + z * 3) : 1);
-  const brightnessZ = (z: number | undefined) => (z ? Math.max(0, Math.min(255, 255 - z * 100)) : baseColorRGB[0]); // Assuming red for simplicity
+  const brightnessZ = (z: number | undefined) =>
+    z ? Math.max(0, Math.min(255, 255 - z * 100)) : baseColorRGB[0]; // Assuming red for simplicity
 
   const p1Scale = scaleZ(p1.z);
   const p2Scale = scaleZ(p2.z);
-  const midZ = p1.z !== undefined && p2.z !== undefined ? (p1.z + p2.z) / 2 : undefined;
+  const midZ =
+    p1.z !== undefined && p2.z !== undefined ? (p1.z + p2.z) / 2 : undefined;
   const brightness = brightnessZ(midZ);
 
   canvasCtx.beginPath();
@@ -117,12 +129,6 @@ export const BackgroundImage = (
   canvasElement: HTMLCanvasElement,
 ) => {
   if (image) {
-    canvasCtx.drawImage(
-      image,
-      0,
-      0,
-      canvasElement.width,
-      canvasElement.height,
-    );
+    canvasCtx.drawImage(image, 0, 0, canvasElement.width, canvasElement.height);
   }
 };

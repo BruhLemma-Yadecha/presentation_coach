@@ -28,7 +28,11 @@ export const setupCamera = async ({
     const camera = new Camera(videoElement, {
       onFrame: async () => {
         // Ensure videoElement has a valid readyState and dimensions before sending to Holistic
-        if (videoElement.readyState >= HTMLMediaElement.HAVE_METADATA && videoElement.videoWidth > 0 && videoElement.videoHeight > 0) {
+        if (
+          videoElement.readyState >= HTMLMediaElement.HAVE_METADATA &&
+          videoElement.videoWidth > 0 &&
+          videoElement.videoHeight > 0
+        ) {
           await holisticModel.send({ image: videoElement });
         }
       },
@@ -45,7 +49,10 @@ export const setupCamera = async ({
   } catch (err) {
     console.error("Camera setup failed:", err);
     const errorMessage = err instanceof Error ? err.message : String(err);
-    if (errorMessage.includes("Permission denied") || errorMessage.includes("The request is not allowed by the user agent")) {
+    if (
+      errorMessage.includes("Permission denied") ||
+      errorMessage.includes("The request is not allowed by the user agent")
+    ) {
       onCameraError(
         "Camera access denied. Please allow camera permissions.",
         EvaluationType.CAMERA_ERROR,

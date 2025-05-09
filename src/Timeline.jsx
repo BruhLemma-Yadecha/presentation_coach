@@ -4,27 +4,27 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const Timeline = ({ entries }) => {
   return (
-    <Card style={{ borderRadius: "20px" }}>
+    <Card className="rounded-2xl shadow-md bg-white">
       <CardHeader>
         <CardTitle>
-          {" "}
-          <h2 className="text-lg font-bold mb-2">Timeline</h2>
+          <h2 className="text-lg font-bold text-gray-800">Timeline</h2>
         </CardTitle>
       </CardHeader>
-      <div className="border-b border-gray-300 my-2" />
+
+      <div className="border-b border-gray-200 mx-4" />
+
       <CardContent>
-        <ScrollArea className="h-64">
-          <ul
-            className="space-y-2 list-none pl-0 ml-0 text-left"
-            style={{ textAlign: "left" }}
-          >
+        <ScrollArea className="h-64 pr-2">
+          <ul className="space-y-3">
             {entries.map((entry, idx) => (
-              <p key={idx} className="">
-                <span className="text-xs text-gray-400 mb-1">
-                  {new Date(entry.timestamp).toLocaleTimeString()} |{" "}
-                  {entry.message}
-                </span>
-              </p>
+              <li key={idx}>
+                <div className="text-sm text-gray-600">
+                  <span className="font-medium text-gray-800">
+                    {new Date(entry.timestamp).toLocaleTimeString()}
+                  </span>
+                  <span className="ml-2 text-gray-500">{entry.message}</span>
+                </div>
+              </li>
             ))}
           </ul>
         </ScrollArea>
