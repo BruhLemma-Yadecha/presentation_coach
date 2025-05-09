@@ -12,7 +12,7 @@ function App() {
   const [end, setEnd] = useState(false);
 
   return (
-    <div style={{alignContent: "center", justifyContent: "center", display: "flex", flexDirection: "column", height: "100vh"}}>
+    <div style={{alignContent: "center", justifyContent: "center", display: "flex", flexDirection: "column"}}>
     {end ? (
       <>
         {/* Epilogue View */}
@@ -37,10 +37,10 @@ function App() {
     ) : start ? (
       <>
         {/* Coach View */}
-        <div className="" style={{ height: "100vh", width:"90vw"}}>
+        <div style={{ height: "100vh", width: "100vw" }}>
           <Coach setHistory={setHistory} setEnd={setEnd} />
         </div>
-  
+
         {/* Control Buttons */}
         <div style={{
             position: "absolute",

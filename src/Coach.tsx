@@ -403,7 +403,7 @@ const Coach: React.FC<CoachProps> = ({ setHistory, setEnd }) => {
   }, [onResults, updateStatusMessageHandler]); // Added onResults and updateStatusMessageHandler
 
   return (
-    <div style={{ position: "relative", width: "100%", height: "100vh", overflow: "hidden",}}>
+    <div style={{ position: "relative", width: "100%", height: "100%", overflow: "hidden",}}>
       {/* Video and Canvas Layer */}
       <div
         style={{
@@ -444,7 +444,7 @@ const Coach: React.FC<CoachProps> = ({ setHistory, setEnd }) => {
             position: "absolute",
             top: 0,
             left: 0,
-            width: "100%",
+            width: "auto",
             height: "100%",
             zIndex: 10,
           }}>
@@ -452,10 +452,8 @@ const Coach: React.FC<CoachProps> = ({ setHistory, setEnd }) => {
             ref={videoRef}
             style={{
               position: "absolute",
-              left: "1%",
               display: showVideo ? "block" : "none",
               width: "auto",
-              height: "100vh",
               alignContent: "center",
               alignItems: "center",
             }}
@@ -502,14 +500,14 @@ const Coach: React.FC<CoachProps> = ({ setHistory, setEnd }) => {
       <div
         style={{
           position: "absolute",
-          bottom: "60px",
-          left: "45%",
+          bottom: "10px",
+          left: "50%",
           transform: "translateX(-50%)",
           width: "60%",
           zIndex: 50,
           background: "rgba(0, 0, 0, 0.22)",
           borderRadius: "12px",
-          padding: "1em",
+          padding: ".8em",
           maxHeight: "30%",
           overflowY: "auto",
           scrollbarWidth: "none",
@@ -522,5 +520,3 @@ const Coach: React.FC<CoachProps> = ({ setHistory, setEnd }) => {
 };
 
 export default Coach;
-
-{/* //  */}

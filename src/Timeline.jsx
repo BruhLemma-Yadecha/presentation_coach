@@ -17,14 +17,12 @@ const Timeline = ({ entries }) => {
         <ScrollArea className="h-64 pr-2">
           <ul className="space-y-3">
             {entries.map((entry, idx) => (
-              <li key={idx}>
-                <div className="text-sm text-gray-600">
-                  <span className="font-medium text-gray-800">
-                    {new Date(entry.timestamp).toLocaleTimeString()}
-                  </span>
-                  <span className="ml-2 text-gray-500">{entry.message}</span>
-                </div>
-              </li>
+              <div className="text-sm text-gray-600" style={{textAlign: "left"}} key={idx}>
+                <span className="font-medium text-gray-800">
+                  {new Date(entry.timestamp).toLocaleTimeString()}
+                </span>
+                <span className="ml-2 text-gray-500">{entry.message}</span>
+              </div>
             ))}
           </ul>
         </ScrollArea>
