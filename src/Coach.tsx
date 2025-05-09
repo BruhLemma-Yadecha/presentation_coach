@@ -403,15 +403,16 @@ const Coach: React.FC<CoachProps> = ({ setHistory, setEnd }) => {
   }, [onResults, updateStatusMessageHandler]); // Added onResults and updateStatusMessageHandler
 
   return (
-    <div>
+    <div style={{ position: "relative", width: "100%", height: "100vh", overflow: "hidden",}}>
+      {/* Video and Canvas Layer */}
       <div
-        className="fixed-container"
         style={{
-          top: 20,
-          right: 20,
-          width: "68%",
-          height: "65vh",
-          zIndex: 100,
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          zIndex: 10,
         }}
       >
         {cameraError && (
@@ -438,62 +439,82 @@ const Coach: React.FC<CoachProps> = ({ setHistory, setEnd }) => {
             </ol>
           </div>
         )}
-        <video
-          ref={videoRef}
-          style={{
-            display: showVideo ? "block" : "none",
-            width: "100%",
-            height: "100%",
-            objectFit: "cover",
-          }}
-          autoPlay
-          playsInline
-          muted
-        ></video>
-        <canvas
-          ref={canvasRef}
+        <div
           style={{
             position: "absolute",
             top: 0,
             left: 0,
             width: "100%",
             height: "100%",
-            display: cameraError ? "none" : "block",
-          }}
-        ></canvas>
+            zIndex: 10,
+          }}>
+          <video
+            ref={videoRef}
+            style={{
+              position: "absolute",
+              left: "1%",
+              display: showVideo ? "block" : "none",
+              width: "auto",
+              height: "100vh",
+              alignContent: "center",
+              alignItems: "center",
+            }}
+            autoPlay
+            playsInline
+            muted
+          />
+
+          <canvas
+            ref={canvasRef}
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: "auto",
+              height: "100vh",
+              display: cameraError ? "none" : "block",
+              zIndex: 20,
+            }}
+          />
+         </div> 
       </div>
 
+      {/* Timeline Panel (Top Left Corner) */}
       <div
-        className="fixed-container"
-        style={{ top: 20, left: 20, width: "28%" }}
-      >
-        <div style={{ textAlign: "center", padding: "1em" }}>
-          <Timeline entries={timelineEntries} />
-        </div>
-      </div>
-
-      <div
-        className="fixed-container"
         style={{
-          bottom: 20,
-          right: 20,
-          width: "68%",
-          height: "25vh",
-          padding: "1em",
-          backgroundColor: "rgba(0, 0, 0, 0.7)",
+          position: "absolute",
+          top: "10px",
+          left: "10px",
+          width: "25%",
+          height: "60%",
+          zIndex: 50,
+          background: "rgba(0, 0, 0, 0.21)",
+          borderRadius: "12px",
+          padding: "10px",
+          overflowY: "auto",
+          scrollbarWidth:"none",
         }}
       >
-        {statusMessage && (
-          <div
-            style={{
-              marginBottom: "10px",
-              fontSize: "1.2em",
-              color: "lightcoral",
-            }}
-          >
-            {statusMessage}
-          </div>
-        )}
+        <Timeline entries={timelineEntries} />
+      </div>
+
+      {/* Feedback Panel (Bottom Center) */}
+      <div
+        style={{
+          position: "absolute",
+          bottom: "60px",
+          left: "45%",
+          transform: "translateX(-50%)",
+          width: "60%",
+          zIndex: 50,
+          background: "rgba(0, 0, 0, 0.22)",
+          borderRadius: "12px",
+          padding: "1em",
+          maxHeight: "30%",
+          overflowY: "auto",
+          scrollbarWidth: "none",
+        }}
+      >
         <Feedback entries={timelineEntries} />
       </div>
     </div>
@@ -501,3 +522,5 @@ const Coach: React.FC<CoachProps> = ({ setHistory, setEnd }) => {
 };
 
 export default Coach;
+
+{/* //  */}
