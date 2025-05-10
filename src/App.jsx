@@ -1,4 +1,5 @@
 import { useState } from "react";
+import React, { useRef } from 'react';
 import { Navigation } from "lucide-react";
 
 import "./App.css";
@@ -11,6 +12,14 @@ function App() {
   const [history, setHistory] = useState([]);
   const [end, setEnd] = useState(false);
 
+  const coachRef = useRef();
+
+  const handleEnd = () => {
+    coachRef.current?.stopCamera(); // Call the stopCamera method
+    setEnd(true);
+    setStart(false);
+  };
+
   return (
     <div style={{alignContent: "center", justifyContent: "center", display: "flex", flexDirection: "column"}}>
     {end ? (
@@ -21,15 +30,23 @@ function App() {
         </div>
   
         {/* Reset Button */}
-        <div className="">
+        <div className="" style={{
+              position: "absolute",
+              top: "15px",
+              right: "15px",
+              zIndex: 50,
+              backgroundColor: "rgba(0, 0, 0, 0.29)",
+              padding: "10px",
+              borderRadius: "20px",
+              boxShadow: "0 2px 10px rgba(0, 0, 0, 0.1)",
+            }}>
           <Button
             variant="outline"
             onClick={() => {
               setStart(false);
               setEnd(false);
               setHistory([]);
-            }}
-          >
+            }}>
             Reset
           </Button>
         </div>
@@ -49,7 +66,7 @@ function App() {
             zIndex: 50,
             backgroundColor: "rgba(0, 0, 0, 0.29)",
             padding: "10px",
-            borderRadius: "8px",
+            borderRadius: "20px",
             boxShadow: "0 2px 10px rgba(0, 0, 0, 0.1)",
           }}>
         <div className="button-container">

@@ -392,6 +392,14 @@ const Coach: React.FC<CoachProps> = ({ setHistory, setEnd }) => {
       }
     };
 
+  const stopCamera = () => {
+  if (cleanupCamera) {
+    cleanupCamera(); // This should internally stop all tracks and clean up
+    cleanupCamera = null;
+    setShowVideo(false);
+  }
+};
+
     startCamera();
 
     return () => {
@@ -483,14 +491,12 @@ const Coach: React.FC<CoachProps> = ({ setHistory, setEnd }) => {
           position: "absolute",
           top: "10px",
           left: "10px",
-          width: "25%",
-          height: "60%",
+          width: "20%",
+          height: "60vh",
           zIndex: 50,
           background: "rgba(0, 0, 0, 0.21)",
-          borderRadius: "12px",
-          padding: "10px",
-          overflowY: "auto",
-          scrollbarWidth:"none",
+          borderRadius: "20px",
+          padding: "5px",
         }}
       >
         <Timeline entries={timelineEntries} />
@@ -503,13 +509,13 @@ const Coach: React.FC<CoachProps> = ({ setHistory, setEnd }) => {
           bottom: "10px",
           left: "50%",
           transform: "translateX(-50%)",
-          width: "60%",
+          width: "50%",
+          height: "22vh",
           zIndex: 50,
           background: "rgba(0, 0, 0, 0.22)",
-          borderRadius: "12px",
-          padding: ".8em",
+          borderRadius: "20px",
           maxHeight: "30%",
-          overflowY: "auto",
+          overflowY: "hidden",
           scrollbarWidth: "none",
         }}
       >

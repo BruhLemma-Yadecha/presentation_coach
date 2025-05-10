@@ -4,7 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const Timeline = ({ entries }) => {
   return (
-    <Card className="rounded-2xl shadow-md bg-white">
+    <Card className="rounded-2xl shadow-md bg-white" style={{
+      
+    }}>
       <CardHeader>
         <CardTitle>
           <h2 className="text-lg font-bold text-gray-800">Timeline</h2>
@@ -19,7 +21,8 @@ const Timeline = ({ entries }) => {
                 textAlign: "left", 
                 overflowY: "auto",
                 scrollbarWidth:"none",
-                height: "44vh",
+                height: "70vh",
+                padding: "10px",
                 }}>
             {entries.map((entry, idx) => (
               <div className="text-sm text-gray-600"  key={idx}>

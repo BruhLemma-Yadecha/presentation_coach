@@ -2,7 +2,7 @@ import PresentationHistory from "./PresentationHistory";
 import FeedbackFrequencies from "./FeedbackFrequencies";
 import { Separator } from "@/components/ui/separator";
 import Summary from "./Summary";
-import Timeline from "./Timeline";
+import Timeline from "./TimelineEpilogues";
 
 const Epilogue = ({ history }) => {
   // Dummy data for testing scroll functionality (can be removed if history prop is always reliable)
@@ -67,7 +67,6 @@ const Epilogue = ({ history }) => {
   return (
     <div
       style={{
-        transform: "translateX(-10%)",
         height: "92vh",
         width: "100vw",
         display: "flex",
@@ -78,10 +77,10 @@ const Epilogue = ({ history }) => {
       {/* Timeline (Left 28%) */}
       <div
         style={{
-          width: "28%",
+          width: "20%",
           padding: "10px",
           overflowY: "auto",
-          backgroundColor: "#1a1a1a", // Optional background
+          borderRadius: "20px",
           color: "white",
           overflowX: "hidden",
           display: "flex",

@@ -1,5 +1,4 @@
 #root {
-  max-width: 1280px;
   padding: 0;
   text-align: center;
   width: 100%;
@@ -77,4 +76,5 @@
   display: flex;
   justify-content: center;
   margin-top: 20px;
+  border-radius: 20px;
 }
